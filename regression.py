@@ -4,8 +4,6 @@ A simple implementation of linear regression.
 import math
 import numpy as np
 
-from sklearn.metrics import pairwise
-
 import matplotlib.pyplot as plt
 
 
@@ -86,11 +84,27 @@ def mse(y, y_pred):
     return np.sum((y - y_pred)**2)
 
 
-def rbf_kernel(X1, X2):
+def rbf_kernel(X1, X2, gamma=0.1):
     """
     Computes radial basis functions between inputs in X1 and X2.
+
+    K(x, y) = exp(-gamma ||x - y||^2)
+
+    This is a slow implementation for illustrative purposes.
     """
-    return pairwise.rbf_kernel(X1, X2)
+    n_samples_rr = X1.shape[0]
+    n_samples_cc = X2.shape[0]
+
+    pairwise_distances = np.zeros((n_samples_rr, n_samples_cc))
+
+    # Compute pairwise distances
+    for rr in range(n_samples_rr):
+        for cc in range(n_samples_cc):
+            pairwise_distances[rr, cc] = np.sum((X1[rr] - X2[cc])**2)
+
+    K = np.exp(-gamma * pairwise_distances)
+
+    return K
 
 
 class LinearRegression():
@@ -124,13 +138,19 @@ class LinearRegression():
         """
         Predict model.
         """
+        # Check input is the correct shape
         if X.ndim == 1:
             X = X[:,np.newaxis]
-        X = np.hstack((np.ones((X.shape[0], 1)), X))
-        X = np.matrix(X)
 
+        # Prepend a column of 1's onto input for intercept
+        X = np.hstack((np.ones((X.shape[0], 1)), X))
+
+        X = np.matrix(X) # Use a NumPy matrix for clarity
+
+        # Access our computed model parameters
         w = np.matrix(self.coef_).T
 
+        # Compute prediction
         y = X * w
 
         return np.asarray(y).flatten()
