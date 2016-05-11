@@ -63,8 +63,8 @@ def partition_data(X, y, train_ratio=0.6, val_ratio=0.5):
     randind = list(range(n_points))
     np.random.shuffle(randind)
 
-    train_ind = round(train_ratio * n_points)
-    val_ind = round(val_ratio * (n_points - train_ind)) + train_ind
+    train_ind = int(round(train_ratio * n_points))
+    val_ind = int(round(val_ratio * (n_points - train_ind)) + train_ind)
 
     train_inds = randind[:train_ind]
     val_inds = randind[train_ind:val_ind]

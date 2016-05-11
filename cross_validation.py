@@ -66,6 +66,7 @@ if __name__ == "__main__":
     plt.axvline(min_alpha, color="r")
     plt.xlabel('alpha')
     plt.ylabel('MSE')
+    plt.savefig('/tmp/cross-validation.png', bbox_inches="tight")
 
     model = regression.LinearRegression(alpha=min_alpha)
 
@@ -84,6 +85,6 @@ if __name__ == "__main__":
         y_tr,
         x_plot,
         y_plot,
-        filename='/tmp/kernel_regression_sin_data.png')
+        filename='/tmp/cross_validation_results.png')
 
     plt.show()
