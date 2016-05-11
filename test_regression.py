@@ -110,10 +110,11 @@ def test_linear_regression_sin_data():
 def test_kernel_regression_sin_data():
     np.random.seed(1)
     x, y = regression.generate_sin_data(
-        N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
+        N, theta_start=THETA_START,
+        theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
 
-    (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = regression.partition_data(
-        x[:,np.newaxis], y, val_ratio=0)
+    (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = (
+        regression.partition_data(x[:,np.newaxis], y, val_ratio=0))
 
     # Create model
     kernel_regression = regression.LinearRegression(alpha=1e-5)
@@ -131,6 +132,9 @@ def test_kernel_regression_sin_data():
     K_test = kernel_fn(X_test)
     y_pred = kernel_regression.predict(K_test)
 
+    print("Kernel regression MSE: {}".format(regression.mse(y_test, y_pred)))
+    assert_less_equal(regression.mse(y_test, y_pred), 0.8)
+
     # Plot output
     x_plot = np.linspace(x.min(), x.max(), 200)
     K_plot = kernel_fn(x_plot[:,np.newaxis])
@@ -142,6 +146,3 @@ def test_kernel_regression_sin_data():
         x_plot,
         y_plot,
         filename='/tmp/kernel_regression_sin_data.png')
-
-    print("Kernel regression MSE: {}".format(regression.mse(y_test, y_pred)))
-    assert_less_equal(regression.mse(y_test, y_pred), 0.8)
