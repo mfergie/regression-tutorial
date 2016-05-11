@@ -132,6 +132,7 @@ class LinearRegression():
 
     def __init__(self, alpha=0):
         self.alpha_ = alpha
+        self.coef_ = None
 
 
     def fit(self, X, y):

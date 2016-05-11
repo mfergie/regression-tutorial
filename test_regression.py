@@ -2,8 +2,6 @@ from nose.tools import assert_equal, assert_almost_equal, assert_less_equal
 from numpy.testing import assert_array_almost_equal
 import numpy as np
 
-import matplotlib.pyplot as plt
-
 import regression
 import math
 
@@ -22,8 +20,6 @@ def test_generate_sin_data():
     np.random.seed(1)
     x, y = regression.generate_sin_data(
         N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
-
-
     assert_equal(x.shape, (N,))
     assert_equal(y.shape, (N,))
 
