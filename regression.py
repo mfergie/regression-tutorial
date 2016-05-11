@@ -127,11 +127,11 @@ def plot_figure(x, y, x_pred, y_pred, display=False, filename=None):
 
 class LinearRegression():
     """
-    Implements basic linear regression.
+    Implements basic linear regression with L2 regularization.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, alpha=0):
+        self.alpha_ = alpha
 
 
     def fit(self, X, y):
@@ -150,8 +150,11 @@ class LinearRegression():
         assert y.ndim == 1, "Only supports 1D y"
         y = np.matrix(y[:,np.newaxis])
 
+        # Add term for regularization
+        alpha_I = self.alpha_ * np.identity(X.shape[1])
+
         # Compute parameters
-        xtx_inv = np.linalg.inv(X.T * X)
+        xtx_inv = np.linalg.inv(X.T * X + alpha_I)
         coef = xtx_inv * X.T * y
 
         self.coef_ = np.asarray(coef).flatten()
