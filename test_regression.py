@@ -6,14 +6,25 @@ from sklearn.metrics import pairwise
 import matplotlib.pyplot as plt
 
 import regression
+import math
+
+N=30
+THETA_START=-1.9
+THETA_END=2.2
+NOISE_SIGMA=0.4
+
+# N=50
+# THETA_START=-2*math.pi
+# THETA_END=2*math.pi
+# NOISE_SIGMA=0.4
+
 
 def test_generate_sin_data():
-    N = 30
     # x, y = regression.generate_sin_data(N)
 
     np.random.seed(1)
     x, y = regression.generate_sin_data(
-        N, theta_start=-2, theta_end=1.9, noise_sigma=0.4)
+        N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
 
 
     assert_equal(x.shape, (N,))
@@ -24,7 +35,7 @@ def test_generate_sin_data():
     plt.plot(x, y, 'ko')
     plt.xlabel('$x$')
     plt.ylabel('$y$')
-    plt.savefig('/tmp/sin_data.png')
+    plt.savefig('/tmp/sin_data.png', bbox_inches="tight")
 
 
 def test_linear_regression():
@@ -52,12 +63,11 @@ def test_linear_regression():
 
 def test_linear_regression_sin_data():
     # Generate data for an arbitrary line
-    N = 30
     # x, y = regression.generate_sin_data(N)
 
     np.random.seed(1)
     x, y = regression.generate_sin_data(
-        N, theta_start=-2, theta_end=2.3, noise_sigma=0.4)
+        N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
 
     (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = regression.partition_data(
         x[:,np.newaxis], y, val_ratio=0)
@@ -71,12 +81,12 @@ def test_linear_regression_sin_data():
     ax = fig.add_subplot(111, aspect='equal')
     plt.plot(X_tr, y_tr, 'k+')
     plt.plot(X_test, y_test, 'b+')
-    plt.plot(X_test, y_pred, 'r+')
+    # plt.plot(X_test, y_pred, 'r+')
     plt.xlabel('$x$')
     plt.ylabel('$y$')
     x_plot = np.linspace(x.min(), x.max(), 200)
     plt.plot(x_plot, linear_regression.predict(x_plot), 'r-')
-    plt.savefig('/tmp/linear_regression_sin_data.png')
+    plt.savefig('/tmp/linear_regression_sin_data.png', bbox_inches="tight")
 
     assert_less_equal(regression.mse(y_test, y_pred), 1.2)
     print("Linear MSE: {}".format(regression.mse(y_test, y_pred)))
@@ -104,8 +114,8 @@ def test_kernel_regression_linear_data():
     plt.figure()
     plt.plot(X_tr, y_tr, 'k+')
     plt.plot(X_test, y_test, 'b+')
-    plt.plot(X_test, y_pred, 'r+')
-    plt.savefig('/tmp/kernel_regression_linear_data.png')
+    # plt.plot(X_test, y_pred, 'r+')
+    plt.savefig('/tmp/kernel_regression_linear_data.png', bbox_inches="tight")
 
     print("Kernel regression MSE: {}".format(regression.mse(y_test, y_pred)))
     assert_less_equal(regression.mse(y_test, y_pred), 0.05)
@@ -125,17 +135,17 @@ def test_rbf():
 
 
 def test_kernel_regression_sin_data():
-    N = 30
-    np.random.seed(0)
+
+    np.random.seed(1)
     x, y = regression.generate_sin_data(
-        N, theta_start=-2, theta_end=1.9, noise_sigma=0.4)
+        N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
 
     (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = regression.partition_data(
         x[:,np.newaxis], y, val_ratio=0.4)
 
 
     kernel_regression = regression.KernelRegression(
-        regression.rbf_kernel, alpha=0.001)
+        regression.rbf_kernel, alpha=0.1)
     kernel_regression.fit(X_tr, y_tr)
 
     print("Coefs: {}".format(kernel_regression.coef_))
@@ -147,13 +157,58 @@ def test_kernel_regression_sin_data():
     ###
     # Plot some results
     ###
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111, aspect='equal')
     plt.plot(X_tr, y_tr, 'k+')
     plt.plot(X_test, y_test, 'b+')
-    plt.plot(X_test, y_pred, 'r+')
+    # plt.plot(X_test, y_pred, 'r+')
+    plt.xlabel('$x$')
+    plt.ylabel('$y$')
     x_plot = np.linspace(x.min(), x.max(), 200)
     plt.plot(x_plot, kernel_regression.predict(x_plot), 'r-')
-    plt.savefig('/tmp/kernel_regression_sin_data.png')
+    plt.savefig('/tmp/kernel_regression_sin_data.png', bbox_inches="tight")
 
-    print("Kernel regression MSE: {}".format(regression.mse(y_test, y_pred)))
+    print("Kernel regression MSE (sin): {}".format(regression.mse(y_test, y_pred)))
+    assert_less_equal(regression.mse(y_test, y_pred), 0.5)
+
+
+def test_kernel_outside():
+    np.random.seed(1)
+    x, y = regression.generate_sin_data(
+        N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
+
+    (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = regression.partition_data(
+        x[:,np.newaxis], y, val_ratio=0.4)
+
+
+    kernel_regression = regression.LinearRegression()
+
+    K = regression.rbf_kernel(X_tr, X_tr)
+    K += np.identity(K.shape[0]) * 0.1
+
+    kernel_regression.fit(K, y_tr)
+
+    print("Coefs: {}".format(kernel_regression.coef_))
+
+    # assert_equal(len(kernel_regression.coef_), X_tr.shape[0])
+
+    K_test = regression.rbf_kernel(X_test, X_tr)
+    y_pred = kernel_regression.predict(K_test)
+
+    ###
+    # Plot some results
+    ###
+    fig = plt.figure()
+    ax = fig.add_subplot(111, aspect='equal')
+    plt.plot(X_tr, y_tr, 'k+')
+    plt.plot(X_test, y_test, 'b+')
+    # plt.plot(X_test, y_pred, 'r+')
+    plt.xlabel('$x$')
+    plt.ylabel('$y$')
+    x_plot = np.linspace(x.min(), x.max(), 200)
+    K_plot = regression.rbf_kernel(x_plot[:,np.newaxis], X_tr)
+    plt.plot(x_plot, kernel_regression.predict(K_plot), 'r-')
+    plt.savefig('/tmp/kernel_regression_sin_data_outside.png', bbox_inches="tight")
+
+    print("Kernel regression MSE (sin): {}".format(regression.mse(y_test, y_pred)))
     assert_less_equal(regression.mse(y_test, y_pred), 0.5)

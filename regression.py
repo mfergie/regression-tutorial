@@ -120,10 +120,14 @@ class LinearRegression():
         """
         Fit model.
         """
+        # Check input is the correct shape
         if X.ndim == 1:
             X = X[:,np.newaxis]
-        X = np.hstack((np.ones((X.shape[0], 1)), X)) # Append a column of 1's for bias
-        X = np.matrix(X)
+
+        # Append a column of 1's for bias
+        X = np.hstack((np.ones((X.shape[0], 1)), X))
+
+        X = np.matrix(X) # Use a NumPy matrix for clarity
 
         assert y.ndim == 1, "Only supports 1D y"
         y = np.matrix(y[:,np.newaxis])
@@ -183,20 +187,18 @@ class KernelRegression():
         K = self.kernel_fn(X, X)
         K = np.matrix(K)
 
-        ###
-        # Prepare y
-        ###
-        self.y_bar_ = y.mean()
-        y = y - self.y_bar_
-        y = np.matrix(y[:,np.newaxis])
-
         # Add regularization to K
         K += np.identity(K.shape[0]) * self.alpha
 
-        # Compute parameters
-        xtx_inv = np.linalg.inv(K.T * K)
-        params = xtx_inv * K.T * y
+        K = np.hstack((np.ones((K.shape[0],1)), K))
 
+        y = np.matrix(y[:,np.newaxis])
+
+        # Compute parameters
+        ktk_inv = np.linalg.inv(K.T * K)
+        params = ktk_inv * K.T * y
+
+        # Store the parameters
         self.coef_ = np.asarray(params).flatten()
 
     def predict(self, X):
@@ -206,18 +208,14 @@ class KernelRegression():
         if X.ndim == 1:
             X = X[:,np.newaxis]
 
-        # Transform inputs via kernel – Note use of original training data
-        # through self.X_
-        Xk = self.kernel_fn(X, self.X_)
+        # Transform inputs via kernel – Note use of
+        # original training data through self.X_
+        K = self.kernel_fn(X, self.X_)
 
-        X = np.hstack((np.ones((X.shape[0], 1)), X))
-        X = np.matrix(X)
-
+        K = np.hstack((np.ones((K.shape[0],1)), K))
 
         w = np.matrix(self.coef_).T
 
-        y = Xk * w
-
-        y += self.y_bar_
-
+        y = K * w
+        
         return np.asarray(y).flatten()
