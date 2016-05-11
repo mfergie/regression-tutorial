@@ -106,6 +106,24 @@ def rbf_kernel(X1, X2, gamma=0.1):
 
     return K
 
+def plot_figure(x, y, x_pred, y_pred, display=False, filename=None):
+    """
+    Plots the output of a 1D regression problem.
+    """
+    fig = plt.figure()
+    fig.add_subplot(111, aspect='equal')
+    plt.plot(x, y, 'k+')
+    plt.xlabel('$x$')
+    plt.ylabel('$y$')
+    plt.plot(x_pred, y_pred, 'r-')
+
+    if display:
+        plt.show()
+
+    if filename is not None:
+        plt.savefig(filename, bbox_inches="tight")
+
+    return fig
 
 class LinearRegression():
     """
@@ -157,65 +175,4 @@ class LinearRegression():
         # Compute prediction
         y = X * w
 
-        return np.asarray(y).flatten()
-
-
-class KernelRegression():
-    """
-    Implements linear regression with a kernel function to allow for non-linear
-    mappings.
-    """
-
-    def __init__(self, kernel_fn, alpha=1):
-        self.kernel_fn = kernel_fn
-        self.alpha = alpha
-
-    def fit(self, X, y):
-        """
-        Fit model.
-        """
-        assert y.ndim == 1, "Only supports 1D y"
-
-        ###
-        # Prepare X
-        ###
-        if X.ndim == 1:
-            X = X[:,np.newaxis]
-        self.X_ = X # Save the training data this time
-
-        # Transform inputs via kernel
-        K = self.kernel_fn(X, X)
-        K = np.matrix(K)
-
-        # Add regularization to K
-        K += np.identity(K.shape[0]) * self.alpha
-
-        K = np.hstack((np.ones((K.shape[0],1)), K))
-
-        y = np.matrix(y[:,np.newaxis])
-
-        # Compute parameters
-        ktk_inv = np.linalg.inv(K.T * K)
-        params = ktk_inv * K.T * y
-
-        # Store the parameters
-        self.coef_ = np.asarray(params).flatten()
-
-    def predict(self, X):
-        """
-        Predict model.
-        """
-        if X.ndim == 1:
-            X = X[:,np.newaxis]
-
-        # Transform inputs via kernel – Note use of
-        # original training data through self.X_
-        K = self.kernel_fn(X, self.X_)
-
-        K = np.hstack((np.ones((K.shape[0],1)), K))
-
-        w = np.matrix(self.coef_).T
-
-        y = K * w
-        
         return np.asarray(y).flatten()

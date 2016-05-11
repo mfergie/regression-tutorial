@@ -76,49 +76,18 @@ def test_linear_regression_sin_data():
     linear_regression.fit(X_tr, y_tr)
 
     y_pred = linear_regression.predict(X_test)
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    plt.plot(X_tr, y_tr, 'k+')
-    plt.plot(X_test, y_test, 'b+')
-    # plt.plot(X_test, y_pred, 'r+')
-    plt.xlabel('$x$')
-    plt.ylabel('$y$')
-    x_plot = np.linspace(x.min(), x.max(), 200)
-    plt.plot(x_plot, linear_regression.predict(x_plot), 'r-')
-    plt.savefig('/tmp/linear_regression_sin_data.png', bbox_inches="tight")
-
     assert_less_equal(regression.mse(y_test, y_pred), 1.2)
     print("Linear MSE: {}".format(regression.mse(y_test, y_pred)))
 
-def test_kernel_regression_linear_data():
-    # Generate data for an arbitrary line
-    w = 0.5
-    b = 1
+    x_plot = np.linspace(x.min(), x.max(), 200)
+    y_plot = linear_regression.predict(x_plot)
 
-    x = np.linspace(0, 1, 100)
-    y = x * w + b
-
-    (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = regression.partition_data(
-        x[:,np.newaxis], y, val_ratio=0)
-
-    kernel_regression = regression.KernelRegression(regression.rbf_kernel, alpha=0.1)
-    kernel_regression.fit(X_tr, y_tr)
-
-    print("Coefs: {}".format(kernel_regression.coef_))
-
-    # assert_equal(len(kernel_regression.coef_), X_tr.shape[0])
-
-    y_pred = kernel_regression.predict(X_test)
-
-    plt.figure()
-    plt.plot(X_tr, y_tr, 'k+')
-    plt.plot(X_test, y_test, 'b+')
-    # plt.plot(X_test, y_pred, 'r+')
-    plt.savefig('/tmp/kernel_regression_linear_data.png', bbox_inches="tight")
-
-    print("Kernel regression MSE: {}".format(regression.mse(y_test, y_pred)))
-    assert_less_equal(regression.mse(y_test, y_pred), 0.05)
+    regression.plot_figure(
+        X_tr,
+        y_tr,
+        x_plot,
+        y_plot,
+        filename='/tmp/linear_regression_sin_data.png')
 
 
 def test_rbf():
@@ -135,44 +104,6 @@ def test_rbf():
 
 
 def test_kernel_regression_sin_data():
-
-    np.random.seed(1)
-    x, y = regression.generate_sin_data(
-        N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
-
-    (X_tr, y_tr), (X_val, y_val), (X_test, y_test) = regression.partition_data(
-        x[:,np.newaxis], y, val_ratio=0.4)
-
-
-    kernel_regression = regression.KernelRegression(
-        regression.rbf_kernel, alpha=0.1)
-    kernel_regression.fit(X_tr, y_tr)
-
-    print("Coefs: {}".format(kernel_regression.coef_))
-
-    # assert_equal(len(kernel_regression.coef_), X_tr.shape[0])
-
-    y_pred = kernel_regression.predict(X_test)
-
-    ###
-    # Plot some results
-    ###
-    fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    plt.plot(X_tr, y_tr, 'k+')
-    plt.plot(X_test, y_test, 'b+')
-    # plt.plot(X_test, y_pred, 'r+')
-    plt.xlabel('$x$')
-    plt.ylabel('$y$')
-    x_plot = np.linspace(x.min(), x.max(), 200)
-    plt.plot(x_plot, kernel_regression.predict(x_plot), 'r-')
-    plt.savefig('/tmp/kernel_regression_sin_data.png', bbox_inches="tight")
-
-    print("Kernel regression MSE (sin): {}".format(regression.mse(y_test, y_pred)))
-    assert_less_equal(regression.mse(y_test, y_pred), 0.5)
-
-
-def test_kernel_outside():
     np.random.seed(1)
     x, y = regression.generate_sin_data(
         N, theta_start=THETA_START, theta_end=THETA_END, noise_sigma=NOISE_SIGMA)
@@ -198,17 +129,17 @@ def test_kernel_outside():
     ###
     # Plot some results
     ###
-    fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    plt.plot(X_tr, y_tr, 'k+')
-    plt.plot(X_test, y_test, 'b+')
-    # plt.plot(X_test, y_pred, 'r+')
-    plt.xlabel('$x$')
-    plt.ylabel('$y$')
     x_plot = np.linspace(x.min(), x.max(), 200)
     K_plot = regression.rbf_kernel(x_plot[:,np.newaxis], X_tr)
-    plt.plot(x_plot, kernel_regression.predict(K_plot), 'r-')
-    plt.savefig('/tmp/kernel_regression_sin_data_outside.png', bbox_inches="tight")
+    y_plot = kernel_regression.predict(K_plot)
+
+    regression.plot_figure(
+        X_tr,
+        y_tr,
+        x_plot,
+        y_plot,
+        filename='/tmp/kernel_regression_sin_data.png')
+
 
     print("Kernel regression MSE (sin): {}".format(regression.mse(y_test, y_pred)))
     assert_less_equal(regression.mse(y_test, y_pred), 0.5)
